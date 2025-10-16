@@ -1,12 +1,54 @@
-# React + Vite
+note- you can get Backend at - https://github.com/user-no-18/Pixio---final-version
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🖼 Image Generator
 
-Currently, two official plugins are available:
+A **Text-to-Image Generator** web app using **React, Node.js, Express, and ClipDrop API**.  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 📸 Preview
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+
+<img width="1802" height="863" alt="Wide Screenshot 1" src="https://github.com/user-attachments/assets/7447b4ba-e1f0-4534-a58e-31f096d5c6e9" />  
+
+---
+
+
+
+<img width="1802" height="863" alt="Wide Screenshot 2" src="https://github.com/user-attachments/assets/d2bc39e0-1818-46c8-a630-12fde742c0f1" />  
+
+---
+
+## ⚡ Features
+
+- Generate images from text prompts using **ClipDrop API**  
+- Responsive UI for desktop and mobile  
+- Handles wide images for better visualization  
+- Node + Express backend for API requests  
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** React.js  
+- **Backend:** Node.js + Express  
+- **API:** ClipDrop Text-to-Image  
+- **Other:** Axios for API requests  
+
+---
+
+```text
+image-generator/
+│
+├─ client/           # React frontend
+│   ├─ src/
+│   ├─ public/
+│
+├─ server/           # Node + Express backend
+│   ├─ routes/
+│   ├─ controllers/
+│   ├─ index.js
+│   ├─ .env
+│
+└─ README.md
