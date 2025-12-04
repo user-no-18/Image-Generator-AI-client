@@ -30,3 +30,6 @@ const App = () => {
 }
 
 export default App
+// username - imagify
+// user mail - imagify@gmail.com  pass - 1234
+

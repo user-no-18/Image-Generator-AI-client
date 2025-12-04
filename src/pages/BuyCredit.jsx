@@ -6,23 +6,15 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-/**
- * BuyCredit component
- * - Uses token from context or localStorage fallback
- * - Sends token as Authorization: Bearer <token>
- * - Loads Razorpay script dynamically if needed
- * - Handles create-order and verify-payment flows
- */
 function BuyCredit() {
   const { user, backendUrl, loadcreditData, token, setShowLogin } =
     useContext(AppContext);
   const navigate = useNavigate();
 
-  // hold loading state per plan to disable multiple clicks
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [scriptLoaded, setScriptLoaded] = useState(!!window.Razorpay);
 
-  // helper to load Razorpay checkout script
+  // Load Razorpay script
   const loadRazorpayScript = () =>
     new Promise((resolve, reject) => {
       if (window.Razorpay) {
@@ -41,7 +33,6 @@ function BuyCredit() {
     });
 
   useEffect(() => {
-    // Try to load Razorpay SDK in background so it's ready when user clicks
     if (!window.Razorpay) {
       loadRazorpayScript().catch((err) => {
         console.warn("Razorpay script load failed:", err);
@@ -49,31 +40,43 @@ function BuyCredit() {
     }
   }, []);
 
-  const getAuthHeader = () => {
-    // prefer context token, fallback to localStorage
+  const getAuthHeaders = () => {
     const savedToken = token || localStorage.getItem("token");
+    console.log('Getting auth headers, token:', savedToken ? 'exists' : 'missing');
+    
     if (!savedToken) return null;
-    return { Authorization: `Bearer ${savedToken}` };
+    
+    // Return both formats for maximum compatibility
+    return {
+      'Authorization': `Bearer ${savedToken}`,
+      'token': savedToken,
+      'Content-Type': 'application/json'
+    };
   };
 
   const paymentRazorpay = async (planId) => {
-    console.log("Initiating payment for plan:", planId);
+    console.log("=== Payment Initiated ===");
+    console.log("Plan ID:", planId);
     console.log("Backend URL:", backendUrl);
+    console.log("User:", user);
+    console.log("Token from context:", token);
+    console.log("Token from localStorage:", localStorage.getItem("token"));
 
-    // ensure user logged in
+    // Ensure user is logged in
     if (!user) {
+      toast.error("Please login first!");
       setShowLogin(true);
       return;
     }
 
-    const authHeader = getAuthHeader();
-    if (!authHeader) {
+    const authHeaders = getAuthHeaders();
+    if (!authHeaders) {
       toast.error("Please login again!");
       setShowLogin(true);
       return;
     }
 
-    // ensure Razorpay SDK present
+    // Ensure Razorpay SDK is loaded
     try {
       if (!window.Razorpay) {
         await loadRazorpayScript();
@@ -87,23 +90,26 @@ function BuyCredit() {
     setLoadingPlan(planId);
     try {
       const url = `${backendUrl}/api/user/pay-razor`;
-      console.log("POST", url, "planId:", planId);
+      console.log("POST to:", url);
+      console.log("Headers:", authHeaders);
+      console.log("Body:", { planId });
+
       const { data } = await axios.post(
         url,
         { planId },
-        { headers: authHeader }
+        { headers: authHeaders }
       );
 
       console.log("Response from backend:", data);
 
       if (data && data.success) {
-        // pass authHeader token down to initPay so verify uses same token
-        initPay(data.order, data.key, authHeader);
+        initPay(data.order, data.key, authHeaders);
       } else {
         toast.error(data?.message || "Failed to initialize payment");
       }
     } catch (error) {
       console.error("Full Axios Error:", error);
+      console.error("Error response:", error.response?.data);
       const message =
         error?.response?.data?.message || error?.message || "Unknown error";
       toast.error(message);
@@ -112,8 +118,7 @@ function BuyCredit() {
     }
   };
 
-  // initPay now receives authHeader for verify step
-  const initPay = (order, key, authHeader) => {
+  const initPay = (order, key, authHeaders) => {
     if (!order || !key) {
       toast.error("Invalid order/key from server");
       return;
@@ -125,12 +130,12 @@ function BuyCredit() {
       currency: order.currency || "INR",
       name: "AI Text to Image",
       description: "Credits Purchase",
-      order_id: order.id, // razorpay order id
+      order_id: order.id,
       handler: async function (response) {
         try {
-          // Verify payment on backend
           const verifyUrl = `${backendUrl}/api/user/verify-razor`;
           console.log("Verifying payment:", verifyUrl, response);
+          
           const verifyData = await axios.post(
             verifyUrl,
             {
@@ -138,19 +143,15 @@ function BuyCredit() {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
             },
-            { headers: authHeader }
+            { headers: authHeaders }
           );
 
           console.log("Verify response:", verifyData?.data);
 
           if (verifyData?.data?.success) {
             toast.success("Payment successful! Credits added to your account.");
-            // refresh user credits
             if (typeof loadcreditData === "function") {
               loadcreditData();
-            } else {
-              // fallback: navigate to buy or refresh
-              console.warn("loadcreditData not available in context");
             }
           } else {
             toast.error(verifyData?.data?.message || "Payment verification failed");
@@ -205,7 +206,7 @@ function BuyCredit() {
             </p>
             <button
               onClick={() => paymentRazorpay(item.id)}
-              className="w-full min-wi-52 bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5"
+              className="w-full min-w-52 bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={loadingPlan === item.id}
             >
               {loadingPlan === item.id ? "Processing..." : user ? "Purchase" : "Get Started"}

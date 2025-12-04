@@ -15,7 +15,7 @@ function Result() {
     setLoading(true);
     setProgress(0);
 
-    // Simulate progress increment while waiting for API
+
     let interval = setInterval(() => {
       setProgress((prev) => (prev < 90 ? prev + 2 : prev)); // goes till 90%
     }, 100);

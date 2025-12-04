@@ -10,7 +10,7 @@ const Footer = () => {
         className="flex-1 border-l border-gray-400 pl-4 text-sm
 text-gray-500 "
       >
-        © 2025 Pixio | All Rights Reserved.
+        © 2025 Pixio | Made for practice purpose only.
       </p>
 
       <div className="flex gap-2.5">
